@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* :root {
+  --background: #050505;
+  --foreground: #ffffff;
+} */
+
+body {
+  background: #050505;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Video Placeholder */
+.video-placeholder {
+  background: linear-gradient(45deg, #111, #1a1a1a);
+  position: relative;
+  overflow: hidden;
+}
+
+.video-placeholder::after {
+  content: 'VIDEO ASSET';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.1);
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  font-size: 10px;
+}
+
+.cursor-follower {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
