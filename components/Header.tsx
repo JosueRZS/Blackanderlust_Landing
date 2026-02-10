@@ -57,5 +57,4 @@ export default function Header() {
         Contacto
       </button>
     </header>
-  );
-}
+    );}
