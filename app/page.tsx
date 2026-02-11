@@ -1,26 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import Preloader from "../components/Preloader";
 import Header from "../components/Header";
-import CreativeHero from "../components/CreativeHero";
 import Services from "../components/Services";
+import Preloader from "../components/Preloader";
+import CreativeHero from "../components/CreativeHero";
 import { useMediaLoader } from "../hooks/useMediaLoader";
 
 export default function Home() {
   const [showContent, setShowContent] = useState(false);
-  const { progress, isLoaded, mediaItems } = useMediaLoader();
+  const { progress, mediaItems } = useMediaLoader();
 
   return (
     <main className="relative min-h-screen overflow-x-hidden">
-      {!showContent && (
-        <Preloader
-          onComplete={() => {
-            setShowContent(true);
-          }}
-          progress={progress}
-        />
-      )}
+      <Preloader
+        onComplete={() => {
+          setShowContent(true);
+        }}
+        progress={progress}
+      />
 
       <div className="relative w-full h-full">
         <Header />

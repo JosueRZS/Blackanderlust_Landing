@@ -28,26 +28,45 @@ export function useMediaLoader() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    let loadedCount = 0;
-    const total = MEDIA_ITEMS.length;
+    const startTime = Date.now();
+    const duration = 3000; // 3 segundos
+    let isMounted = true;
 
-    const incrementProgress = () => {
-      loadedCount++;
-      const newProgress = Math.round((loadedCount / total) * 100);
-      setProgress(newProgress);
+    // Actualizar progreso con un poco de aleatoriedad para que se sienta real
+    const progressInterval = setInterval(() => {
+      if (!isMounted) return;
 
-      if (loadedCount === total) {
+      const elapsed = Date.now() - startTime;
+      if (elapsed < duration) {
+        // Añadimos una pequeña variación aleatoria para que no sea estrictamente lineal
+        const baseProgress = (elapsed / duration) * 92;
+        const randomFactor = Math.sin(elapsed / 200) * 2; // Oscilación suave
+        const newProgress = Math.min(
+          95,
+          Math.round(baseProgress + randomFactor),
+        );
+
+        setProgress((prev) => {
+          // Solo actualizamos si el nuevo progreso es mayor para evitar retrocesos
+          return newProgress > prev ? newProgress : prev;
+        });
+      }
+    }, 100);
+
+    // Completar después de 3 segundos
+    const completeTimer = setTimeout(() => {
+      if (isMounted) {
+        clearInterval(progressInterval);
+        setProgress(100);
         setIsLoaded(true);
       }
-    };
+    }, duration + 50);
 
-    MEDIA_ITEMS.forEach((item) => {
-      const video = document.createElement("video");
-      video.src = item.src;
-      video.preload = "auto";
-      video.onloadedmetadata = incrementProgress;
-      video.onerror = incrementProgress;
-    });
+    return () => {
+      isMounted = false;
+      clearInterval(progressInterval);
+      clearTimeout(completeTimer);
+    };
   }, []);
 
   return {
