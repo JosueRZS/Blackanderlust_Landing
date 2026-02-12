@@ -1,7 +1,8 @@
 "use client";
 
 import Header from "../components/Header";
-import SectionServicios from "../components/SectionServicios";
+// import SectionServicios from "../components/SectionServicios";
+import ServicesSection from "../components/ServicesSection";
 
 export default function Home() {
   return (
@@ -9,7 +10,8 @@ export default function Home() {
       <Header />
 
       <div className="relative z-10 pt-[20vh]">
-        <SectionServicios />
+        {/* <SectionServicios /> */}
+        <ServicesSection />
       </div>
 
       <footer className="py-20 text-center border-t border-white/5 relative z-20 bg-[#050505]">
