@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export type MediaItem = {
   readonly type: "video" | "image";
@@ -23,55 +23,58 @@ const MEDIA_ITEMS: readonly MediaItem[] = [
   { type: "video", src: "/videos/mkt/products/reloj.mp4" },
 ] as const;
 
+/**
+ * Hook universal de precarga de media.
+ *
+ * Escanea TODOS los elementos del DOM que tengan `data-preload`:
+ *   - <video data-preload> → espera readyState >= 3 (HAVE_FUTURE_DATA)
+ *   - <img data-preload>   → espera naturalWidth > 0 (decoded)
+ *
+ * Funciona para CreativeHero, ServiceCards, Header, Footer, etc.
+ * Cualquier componente solo necesita agregar data-preload a su <video> o <img>.
+ */
 export function useMediaLoader() {
   const [progress, setProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    const startTime = Date.now();
-    const duration = 3000; // 3 segundos
-    let isMounted = true;
+  const checkMedia = useCallback(() => {
+    const elements = document.querySelectorAll("[data-preload]");
+    if (elements.length === 0) return;
 
-    // Actualizar progreso con un poco de aleatoriedad para que se sienta real
-    const progressInterval = setInterval(() => {
-      if (!isMounted) return;
-
-      const elapsed = Date.now() - startTime;
-      if (elapsed < duration) {
-        // Añadimos una pequeña variación aleatoria para que no sea estrictamente lineal
-        const baseProgress = (elapsed / duration) * 92;
-        const randomFactor = Math.sin(elapsed / 200) * 2; // Oscilación suave
-        const newProgress = Math.min(
-          95,
-          Math.round(baseProgress + randomFactor),
-        );
-
-        setProgress((prev) => {
-          // Solo actualizamos si el nuevo progreso es mayor para evitar retrocesos
-          return newProgress > prev ? newProgress : prev;
-        });
+    let ready = 0;
+    elements.forEach((el) => {
+      if (el.tagName === "VIDEO") {
+        if ((el as HTMLVideoElement).readyState >= 3) ready++;
+      } else if (el.tagName === "IMG") {
+        if (
+          (el as HTMLImageElement).complete &&
+          (el as HTMLImageElement).naturalWidth > 0
+        )
+          ready++;
       }
-    }, 100);
+    });
 
-    // Completar después de 3 segundos
-    const completeTimer = setTimeout(() => {
-      if (isMounted) {
-        clearInterval(progressInterval);
-        setProgress(100);
-        setIsLoaded(true);
-      }
-    }, duration + 50);
-
-    return () => {
-      isMounted = false;
-      clearInterval(progressInterval);
-      clearTimeout(completeTimer);
-    };
+    const pct = Math.round((ready / elements.length) * 100);
+    setProgress(pct);
+    if (ready === elements.length) {
+      setIsLoaded(true);
+    }
   }, []);
 
-  return {
-    progress,
-    isLoaded,
-    mediaItems: MEDIA_ITEMS,
-  };
+  useEffect(() => {
+    const interval = setInterval(checkMedia, 250);
+
+    // Fallback: después de 8s forzar completar
+    const fallback = setTimeout(() => {
+      setProgress(100);
+      setIsLoaded(true);
+    }, 8000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(fallback);
+    };
+  }, [checkMedia]);
+
+  return { progress, isLoaded, mediaItems: MEDIA_ITEMS };
 }

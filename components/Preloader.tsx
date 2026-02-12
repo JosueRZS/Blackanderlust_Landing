@@ -65,10 +65,10 @@ export default function Preloader({
     <div
       ref={containerRef}
       id="preloader"
-      className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+      className="fixed inset-0 z-100 bg-black flex items-center justify-center"
     >
       <div className="text-center w-full max-w-sm px-10">
-        <div className="mb-4 h-[1px] w-full bg-white/10 overflow-hidden relative">
+        <div className="mb-4 h-px w-full bg-white/10 overflow-hidden relative">
           <div
             className="h-full bg-white absolute top-0 left-0 transition-all duration-300 ease-out"
             style={{ width: `${displayProgress}%` }}

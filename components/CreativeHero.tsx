@@ -2,19 +2,63 @@
 
 import gsap from "gsap";
 import SplitType from "split-type";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MediaItem } from "../hooks/useMediaLoader";
 
+/**
+ * Video de fondo universal: sin controles, muted, loop, autoplay forzado.
+ * Funciona en todos los dispositivos (iOS, Android, Desktop).
+ */
 function VideoItem({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  // Forzar reproducción programáticamente — autoPlay falla en contenedores ocultos
+  const forcePlay = useCallback(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.play().catch(() => {
+      // Silenciar — política autoplay del browser puede bloquear, reintentar
+    });
+  }, []);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+
+    // Intentar play inmediato
+    forcePlay();
+
+    // Reintentar cuando tenga datos suficientes
+    v.addEventListener("canplay", forcePlay);
+
+    // Reintentar cuando se haga visible (intersection observer)
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) forcePlay();
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(v);
+
+    return () => {
+      v.removeEventListener("canplay", forcePlay);
+      observer.disconnect();
+    };
+  }, [forcePlay]);
+
   return (
     <video
+      ref={ref}
       src={src}
+      data-preload
       loop
       muted
-      autoPlay
       playsInline
-      preload="metadata"
-      className="w-full h-full object-cover grayscale brightness-[0.8] contrast-[1.15]"
+      preload="auto"
+      // Asegurar que NUNCA muestre controles en ningún dispositivo
+      controls={false}
+      disablePictureInPicture
+      className="w-full h-full object-cover grayscale brightness-[0.8] contrast-[1.15] pointer-events-none"
     />
   );
 }
@@ -60,14 +104,18 @@ function HorizontalRow({
     };
   }, [speed, reverse]);
 
-  const displayItems = [...items, ...items];
-
+  // Renderizar items UNA SOLA VEZ sin duplicación
+  // El efecto de carrusel infinito viene del GSAP animation, no de duplicar DOM
   return (
     <div className="w-full relative overflow-hidden h-36 md:h-44 will-change-transform">
-      <div ref={rowRef} className="flex gap-4 px-2 w-max">
-        {displayItems.map((item, i) => (
+      <div
+        ref={rowRef}
+        className="flex gap-4 px-2 w-max"
+        style={{ willChange: "transform" }}
+      >
+        {items.map((item, i) => (
           <div
-            key={i}
+            key={`${item.src}-${i}`}
             className="relative aspect-video h-32 md:h-40 shrink-0 bg-[#0a0a0a] overflow-hidden rounded-2xl border border-white/5 shadow-2xl"
           >
             <VideoItem src={item.src} />
@@ -111,14 +159,17 @@ function VerticalColumn({
     return () => clearTimeout(timeout);
   }, [speed, reverse]);
 
-  const displayItems = [...items, ...items];
-
+  // Renderizar items UNA SOLA VEZ sin duplicación
   return (
     <div className="flex-1 min-w-37.5 md:min-w-50 lg:min-w-60 relative h-full hero-column will-change-transform">
-      <div ref={columnRef} className="flex flex-col gap-6 py-4">
-        {displayItems.map((item, i) => (
+      <div
+        ref={columnRef}
+        className="flex flex-col gap-6 py-4"
+        style={{ willChange: "transform" }}
+      >
+        {items.map((item, i) => (
           <div
-            key={i}
+            key={`${item.src}-${i}`}
             className="relative aspect-4/5 w-full bg-[#0a0a0a] overflow-hidden rounded-2xl border border-white/5 shadow-2xl"
           >
             <VideoItem src={item.src} />

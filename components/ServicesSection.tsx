@@ -109,7 +109,7 @@ export default function ServicesSection() {
             start: "top top",
             end: `+=${totalTravel}`,
             pin: true,
-            scrub: 1, 
+            scrub: 1,
             invalidateOnRefresh: true,
           },
         });
