@@ -1,4 +1,4 @@
-// TODO: Revisar
+// TODO: Revisar para SEO
 import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
